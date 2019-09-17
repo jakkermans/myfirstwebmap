@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+ <html>
+  <head>
+   <title> My title </title>
+   <link rel="stylesheet" href="main.css"/>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+  </head>
+  <body>
+   <h1>Overall map with Bigfoot sightings</h1>
+   <div id="map"></div>
+   <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-hash/0.2.1/leaflet-hash.js"></script>
+   <script>
+    //initialize the map         
+    var map = L.map('map').setView([52.8923212, 6.0078067], 2);
+    // Hash in URL
+    var hash = new L.Hash(map);
+  
+    //Create baselayer - tiles         
+    var backgroundMap = L.tileLayer('https://maps.heigit.org/openmapsurfer/tiles/roads/webmercator/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> | Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
+    var popups = ["This is the home where I happily live with my parents, my sister, my brother, my 2 cats and my dog.", "This is de Hoeve.", "This is the home where my friend Jort lives.", "This is the home where my friend Thomas lives.", "This is the place where I work, which is the Van der Valk Hotel Wolvega-Heerenveen."];
+
+    var markers = [[52.8923212, 6.0078067], [52.8867691, 6.0861074], [52.8682305, 6.0035029], [52.8707729, 5.9707144], [52.8798629, 6.0210174]];
+
+    for (i = 0; i < popups.length; i++) {
+      L.marker(markers[i]).addTo(map).bindPopup(popups[i]);
+    }
+
+    var circle = L.circle([52.8921351, 6.0080348], 500, {
+      color: 'red', 
+      fillColor: '#f03', 
+      fillOpacity: 0.5
+    }).addTo(map);
+
+    var polygon = L.polygon([
+      markers[0],
+      markers[1],
+      markers[2],
+      markers[3],
+      markers[4]
+  ]).addTo(map);
+
+  // Create a marker first
+  var geojsonMarkerOptions = {
+      radius: 2,
+      fillColor: "#ff7800",
+      color: "#000",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+  };
+
+  //create a empty geojson layer
+  var geojson = L.geoJson(null,{
+      pointToLayer: function (feature, latlng) {
+      return L.circleMarker(latlng, geojsonMarkerOptions);
+      }
+  }).addTo(map);
+
+  L.geoJSON([ -142.9, 61.5, 100.0 ], geojsonMarkerOptions).addTo(map);
+
+  // new Http Request
+  var xhttp = new XMLHttpRequest();
+
+  // set the request method and data file
+  xhttp.open('GET', encodeURI("All_BFRO_Reports_points.geojson"));
+
+  //specify what must be done with the geojson data to the layer when request is succesfull
+  xhttp.onload = function() {
+      if (xhttp.readyState === 4) {
+          // add the json data to the geojson layer we created before!
+          geojson.addData(JSON.parse(xhttp.responseText));
+      } else {
+          alert('Request failed.  Returned status of ' + xhttp.status);
+      }
+  };
+
+  // send the request
+  xhttp.send();
+
+    backgroundMap.addTo(map);
+   </script>
+  </body>
+ </html>
